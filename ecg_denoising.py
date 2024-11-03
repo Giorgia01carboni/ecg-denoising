@@ -31,7 +31,7 @@ w = np.hamming(L)
 # padding with zeros
 w_padded = np.pad(w, (0, N - len(w)), 'constant')
 
-# shifting padded window to have max value at the centre 
+# shifting padded window to have max value at the centre
 max_index = np.argmax(w_padded)
 w_zero_phase = np.roll(w_padded, -max_index + N // 2)
 
@@ -52,11 +52,30 @@ time_vector_h = np.arange(-L/2, L/2)
 lower_sinc = np.sinc(2 * time_vector_h * lower_cutoff)
 upper_sinc = np.sinc(2 * time_vector_h * upper_cutoff)
 
-h = upper_sinc - lower_sinc
+# delta function
+delta = np.zeros(N)
+delta[0] = 1
 
-h_filtered = w * h
+h_high = delta - lower_sinc
+
+#h = upper_sinc - lower_sinc
+
+#h_filtered = w * h_high
+h_bandpass = np.fft.ifft(np.fft.fft(lower_sinc) * np.fft.fft(h_high)).real
+H = np.fft.fft(h_bandpass)
+H_filtered = np.fft.fft(h_bandpass * w_zero_phase)
+
+# Magnitude and phase of the DFT
+freqs = np.fft.fftfreq(len(H), d = 1/fs)
+magnitude = 20 * np.log10(np.abs(H))
+phase = np.angle(H)
+plt.plot(freqs, magnitude)
+plt.show()
+
+plt.plot(freqs, phase)
+plt.show()
 
 # Filter ecg using circular convolution
-ecg_filtered = np.convolve(ecg_values, h_filtered, mode='same')
+ecg_filtered = np.convolve(ecg_values, H_filtered, mode='same')
 plt.plot(ecg_filtered)
 plt.show()
