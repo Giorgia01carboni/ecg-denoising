@@ -28,7 +28,14 @@ if L % 2 == 0:
 # window vector
 w = np.hamming(L)
 
-plt.plot(w)
+# padding with zeros
+w_padded = np.pad(w, (0, N - len(w)), 'constant')
+
+# shifting padded window to have max value at the centre 
+max_index = np.argmax(w_padded)
+w_zero_phase = np.roll(w_padded, -max_index + N // 2)
+
+plt.plot(w_zero_phase)
 plt.title("Hamming Window (Zero-Phase)")
 plt.show()
 
